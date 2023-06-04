@@ -1,0 +1,76 @@
+-- window function
+-- example
+-- row_number, rank, dense_rank
+-- select * ,
+--  rank() over() as 'rank'
+--  row_number() over() as 'row_number'
+--  dense_rank() over() as 'dense_rank'
+--  from table 
+
+-- first value 
+-- example
+-- write a query to diaplay the most expensive product under rach category (corresponding to each record)
+-- select *,
+-- first_value (col_name) over() as 'first_value'
+-- from table
+
+-- last value  
+-- select *,
+-- last_value (col_name) over() as 'last_value'
+-- from table
+
+
+-- alternative way of window function
+
+-- select *,
+-- first_value(col_name) over w as most_expensivve,
+-- last_value(col_name) over w as least_expensive
+-- from table 
+-- window w as (partition by col_name order by col_name desc
+-- 			range between unbounded preceding and unbounded following)
+
+-- nth value  we can fetch any highest value from it
+-- when using last value and nth value we have to specify the range unbounded preceeding and following 
+-- for this 
+-- select *
+-- nth_value(col_name,3) over(partition by col_name)
+-- from table 
+
+-- ntile : this is used to assign the value in equal format 
+-- example : write a query to segregate into 3 list (high, mid,  low) phones.
+-- select column_name ,
+-- case when x.buckets = 1 then "Expensive phones"
+-- 	 when x.buckets = 2 then "mid range phones"
+--      when x.buckets = 3 then "cheaper phones"
+
+-- from (
+-- select *
+-- ntile(3) over (order by price desc) as buckets
+-- from product
+-- ) x
+
+-- CUME_DIST (cumalative distribution)
+-- value  ranges from 0 to 1 
+-- formula = current row_no or (row_no with value same as current row) / total_no of rows
+
+-- query to fetch all products which  are consisting the first 30% of data 
+-- in products table based on price 
+
+-- select *,
+-- cume_dist() over (order by col_name desc) as cumlative distribution,
+-- round(cume_dist() over(order by price desc) :: numeric *100,2) as cume_dist_percentage
+-- from table ) s
+-- where s.cume_dist_percentage <= 30
+
+-- Percent_rank (relative rank of the current row/percent ranking)
+-- value  ranges from 0 to 1 
+-- formula  = current_rowno -1 /total_no_rows - 1
+
+-- query to identify how much percentage more expensive is "galaxy Z fold 3" when compared to all
+-- products
+
+-- select *,
+-- Percent_rank() over (order by col_name desc) as percentage_rnk,
+-- round(percent_rank() over(order by price desc) :: numeric *100,2) as percentage_rank
+-- from table ) s
+
