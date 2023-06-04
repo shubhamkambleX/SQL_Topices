@@ -1,0 +1,43 @@
+-- what is view 
+-- view is database object
+-- view does not store data
+-- view is like virtual table
+-- creating the view 
+
+-- create view view table_name
+-- select * from 
+-- table 
+
+-- what is the main pupose of using 
+-- view / advantages of views
+-- 1) security
+-- 2) to simplfy complex sql queries
+
+-- create role user_name
+-- login 
+-- password 'james'
+
+-- we have to give him access to fetch the view records 
+-- therefore we use grant 
+
+-- grant select on table_name to user_name
+
+-- we can also create view in another form that is 
+
+-- create or replace view table_name
+-- select * from 
+-- table_name
+
+-- rules while creating or replaceing the view  
+-- 1) cannot change column name 
+-- 2) cannot change column data type
+-- 3) cannot change order of column 
+
+
+-- alter view 
+-- example : 
+-- alter view view_name rename column_name to anothername;
+
+-- drop view 
+-- example :
+-- drop view view name;
