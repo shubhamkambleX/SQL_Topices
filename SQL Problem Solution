@@ -1,0 +1,330 @@
+-- data duplicate based on some column
+-- write to delete duplicate data from particular table
+-- solution 1 Delete using unique identifier.
+
+-- delete 
+-- from table 
+-- where col3 in ( 
+-- select col1,col2 ,max(col3)
+-- from table 
+-- group by  col1,col2 
+-- having count(*) > 1   
+-- )
+
+-- solution 2 using self join
+ -- delete 
+--  from  table
+--  where t2.col3 in (
+--  select t2.id
+--  from table t1
+--  join table t2 
+--  on t1.col1 = t2.col1 
+--  and t1.col2 = t2.col2
+-- where t1.col3 < t2.col3
+-- )
+
+-- soluntion 3: using window fucntion 
+-- delete 
+-- from table 
+-- where col3 in  (
+-- select col3
+-- from (
+-- select *,
+-- row_number() over(partition by col1,col2) as rn
+-- from table ) x
+-- where x.col3 > 1
+-- )
+
+-- solution 4 : using min function. this delete even multiple duplicate records 
+
+-- delete 
+-- from table 
+-- where col3 not in (
+-- select min(col3)
+-- from table 
+-- group by col1,col2
+-- )
+
+-- solution 5: using backup table 
+-- create table back_up_table
+-- as 
+-- select * from original_table where 1=2
+-- insert into back_up_table
+-- select *
+-- from original_table
+-- where col3 in (
+-- 	select min(col3)
+--     from original_table
+--     group by col1,col2
+-- 			)
+--  drop table original_table
+--  
+-- solution 6 : using backup table without dropping 
+-- the original table 
+
+-- create table backup_table_name
+-- as 
+-- select * from original_table where 1=2
+
+-- insert into back_up_table
+-- select * 
+-- from original_table
+-- where col3 in (
+-- 	select min(col3)
+--     from original_table
+--     group by col1,col2
+-- )
+-- truncate table original
+-- insert inot original 
+-- select * from back_up_table
+-- drop table back_up_table
+ 
+delete duplicate when all the colunms are duplicate
+
+-- solution 1: Delete using CTID, -- RowID in postgresql and orcale
+-- select *,ctid
+-- from table
+
+-- delete from table 
+-- where ctid in (
+-- 	select max(ctid)
+--     from table
+--     group by col1,col2
+--     having count(*) > 1
+)
+
+-- solution 2: by creating temporary unique id column
+-- alter table table_name add column col_name int 
+-- generated always as identity
+
+-- select * from table_name
+
+-- delete from table_name
+-- where new_col_name in (
+-- 	select max(new_col_name)
+--     from table
+--     group by col1,col2
+--     having count(*) > 1
+-- )
+-- alter table table_name drop column new_col_name
+
+
+
+-- solution 3: by creating a back up table
+-- create table back_up_table as 
+-- select distinct * from original_table
+
+-- select * from back_up_table
+-- drop table original_table
+-- alter table back_up_table rename to original_table
+-- select * from table  -- which is rename as back_up to original
+
+
+
+-- solution 4: By creating the backup table without fropping the originial table
+
+-- create table backup_table as 
+-- select distinct * 
+-- from table
+
+-- select * 
+-- from backup_table
+
+-- truncate table table_name
+
+-- insert into table
+-- select * from backup_table
+
+-- drop table backup_table 
+
+
+
+-- problem statment 1 
+-- Find the distance travelled by each car per day
+-- Suppose you have a travelling certain distance and the data
+-- is presented as follow
+
+-- Day1- 50km
+-- Day2- 100km
+-- Day3- 200km
+
+-- Now the distance is cumulative sum as in 
+-- row2 = (kms travelled on that day + row1 kms)
+
+-- how should I get the table in the form of kms travelled by 
+-- the car on a given day and not the sum of the
+-- total sitance  ? 
+
+
+-- Problem Solution :
+
+-- select cars, days, distance_travelled_per_day
+-- (cumulative_distance - lag(cumulative_distance,1,0)
+-- over (partition by cars order by days) ) as distance_travelled_per_day
+-- from car_travels 
+
+
+
+-- problem statement 2
+-- input 
+-- id 	Name
+-- 1	Emp1
+-- 2	Emp2
+-- 3	Emp3
+-- 4	Emp4
+-- 5	Emp5
+-- 6	Emp6
+-- 7	Emp7
+-- 8	Emp8
+
+-- Output
+-- result
+-- 1 Emp1, 2 Emp2
+-- 3 Emp3, 4 Emp4
+-- 5 Emp5, 6 Emp6
+-- 7 Emp7, 8 Emp8
+
+-- using ntile and cte and string_agg 
+-- solution : 
+-- with cte as 
+-- 	(
+--     select concat(id,' ',name) as name
+--     ,ntile(4) over(order by id) as buckets
+--     from emp_input)
+-- select string_agg(name,', ') as final_result
+-- from cte
+-- group by buckets
+-- order by 1
+
+-- Problem Statment
+-- Tree Node
+-- input 
+-- id	p_id
+-- 1	null
+-- 2	1
+-- 3	1
+-- 4	2
+-- 5	2
+
+-- Output
+-- id	type
+-- 1	Root
+-- 2	Inner
+-- 3	Leaf
+-- 4	Leaf
+-- 5	Leaf
+  
+  
+-- solution
+-- select id,
+-- case when p_id is null then 'Root'
+-- 	 when p_id not null and p_id 
+--      in (select distinct p_id from tree) then 'Inner'
+--      else 'Leaf'
+-- end as type
+-- from tree  
+
+
+
+
+
+-- Intermediate problems
+
+
+-- 1) Problem Statement :
+-- print meaningful comments
+-- write and sql query to display the correcet message 
+-- (meaningful message) from input commets_and _transaltio
+-- table.
+-- input 
+-- id	comment		transalation
+-- 1	very good	null
+-- 2	good		null
+-- 3	cdcdcd		very bad
+-- 4	bad			null
+
+-- output
+-- very good
+-- good
+-- very bad
+-- bad
+
+-- solution 1 using case statemnt
+-- select case when transaltion is null 
+-- 				then comment
+-- 			else translation
+-- 		end as output
+-- from comments_and_translation
+
+-- solution 2 using coalesce
+-- select coalesce(transalation,comment) as output
+-- from comments_and_translation
+
+
+-- problem statement 2
+-- 2 tables are given source and target
+-- source
+-- id	Name
+-- 1	A
+-- 2	B
+-- 3	C
+-- 4	D
+-- Target
+-- id	Name
+-- 1	A
+-- 2	B
+-- 4	X
+-- 5	F
+
+-- Output
+-- id	Comment
+-- 3		New in source
+-- 5		New in target
+-- 4		Mismatch
+-- without using subquery
+
+-- solution
+
+ -- first stage output
+ select s.id , 'Mismatch' as Comment
+ from source s
+ join target t
+ on t.id = s.id and t.name <> s.name
+ union 
+-- second stage output
+ select s.id , 'New in Source' as Comment
+ from source s
+ left join target t
+ on t.id = s.id
+ where t.id is null
+ union
+ -- thrid stage output
+  select t.id , 'New in Target' as Comment
+ from source s
+ right join target t
+ on t.id = s.id
+ where s.id is null
+ 
+ 
+-- problem statment 3
+-- IPL matches
+-- there are 10 ipl team 
+-- write an sql query such that each team play with every other team just once.
+-- with matches as 
+-- 		(
+-- 		select row_number() over(order by team_name) as ID,team_code,team_name
+-- 		from teams t)
+-- select t1.team_name as team,opponent.team_name as oppenent
+-- from matches t1
+-- join maches opponent
+-- on t1.id  < opponent.id
+
+-- write another query such that each team plays with each other team twice.
+-- with matches as 
+-- 		(
+-- 		select row_number() over(order by team_name) as ID,team_code,team_name
+-- 		from teams t)
+-- select t1.team_name as team,opponent.team_name as oppenent
+-- from matches t1
+-- join maches opponent
+-- on t1.id  <> opponent.id
